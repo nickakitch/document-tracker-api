@@ -3,6 +3,7 @@
 namespace Database\Factories;
 
 use App\Models\Document;
+use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
@@ -37,6 +38,7 @@ class DocumentFactory extends Factory
 
         return [
             'name' => $this->faker->randomElement($fileNames),
+            'owner_id' => User::factory(),
             'path' => $this->faker->filePath(),
             'expires_at' => Carbon::now()->addDays(rand(-90, 90)),
         ];

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\ShowDocumentRequest;
 use App\Http\Requests\StoreDocumentRequest;
 use App\Http\Resources\DocumentResource;
 use App\Models\Document;
@@ -25,14 +26,14 @@ class DocumentController extends Controller
             ->documents()
             ->create([
                 'name' => $input['name'],
-                'expires_at' => $input['expires_at'],
+                'expires_at' => $input['expires_at'] ?? null,
                 'path' => $input['file']->store('documents'),
             ]);
 
         return DocumentResource::make($document);
     }
 
-    public function show(Document $document)
+    public function show(Document $document, ShowDocumentRequest $request)
     {
         return DocumentResource::make($document);
     }

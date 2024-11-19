@@ -13,51 +13,64 @@ class DocumentsTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function testItCanListDocuments()
+    public function test_when_a_request_is_made_to_view_a_list_of_documents_then_the_documents_are_returned()
     {
         $user = User::factory()
             ->has(Document::factory()->count(10))
             ->create();
 
-        $this->actingAs($user);
-
-        $this->getJson('/api/documents')
+        $this
+            ->actingAs($user)
+            ->getJson(route('api.documents.index'))
             ->assertJsonCount(10, 'data')
+            ->assertJsonStructure([
+                'data' => [
+                    '*' => [
+                        'id',
+                        'name',
+                        'path',
+                        'owner_id',
+                        'created_at',
+                        'updated_at',
+                    ],
+                ],
+            ])
             ->assertSuccessful();
     }
 
-    public function testItCanListADocument()
+    public function test_when_a_request_is_made_to_view_a_single_document_then_the_document_is_returned()
     {
-        $user = User::factory()
-            ->create();
+        $user = User::factory()->create();
 
-        $document = Document::factory()
-            ->for($user, 'owner')
-            ->create();
+        $document = Document::factory()->for($user, 'owner')->create();
 
-        $this->actingAs($user);
-
-        $this->getJson("/api/documents/{$document->id}")
-            ->assertSuccessful();
+        $this
+            ->actingAs($user)
+            ->getJson(route('api.documents.show', ['document' => $document->id]))
+            ->assertSuccessful()
+            ->assertJsonStructure([
+                'data' => [
+                    'id',
+                    'name',
+                    'path',
+                    'owner_id',
+                    'created_at',
+                    'updated_at',
+                ],
+            ]);
     }
 
-    //    public function testOnlyDocumentOwnersCanViewDocument()
-    //    {
-    //        $user = User::factory()
-    //            ->create();
-    //
-    //        $user2 = User::factory()
-    //            ->create();
-    //
-    //        $document = Document::factory()
-    //            ->for($user2, 'owner')
-    //            ->create();
-    //
-    //        $this->actingAs($user);
-    //
-    //        $this->get("/api/documents/{$document->id}")
-    //            ->assertForbidden();
-    //    }
+    public function test_given_a_user_does_not_own_a_document_when_a_request_is_made_to_view_a_single_document_then_a_forbidden_response_is_returned()
+    {
+        $user = User::factory()->create();
+
+        $document = Document::factory()->create();
+
+        $this
+            ->actingAs($user)
+            ->getJson(route('api.documents.show', ['document' => $document->id]))
+            ->assertForbidden();
+    }
 
     public function test_when_a_request_is_made_to_store_a_document_then_the_file_is_saved_in_the_database(): void
     {
@@ -73,7 +86,6 @@ class DocumentsTest extends TestCase
                 [
                     'name' => 'Contract',
                     'file' => $file,
-                    'expires_at' => $expiry,
                 ]
             )->assertCreated();
 
@@ -81,7 +93,6 @@ class DocumentsTest extends TestCase
             'name' => 'Contract',
             'path' => 'documents/' . $file->hashName(),
             'owner_id' => $uploadingUser->id,
-            'expires_at' => $expiry,
         ], (new Document())->getConnectionName());
 
         Storage::disk('local')->assertExists('documents/' . $file->hashName());
@@ -135,10 +146,6 @@ class DocumentsTest extends TestCase
             'file must be at most 10MB' => [
                 ['file' => UploadedFile::fake()->create('document.pdf', 10241)],
                 ['file' => ['The file field must not be greater than 10240 kilobytes.']],
-            ],
-            'expires_at is required' => [
-                ['expires_at' => ''],
-                ['expires_at' => ['The expires at field is required.']],
             ],
             'expires_at must be a date' => [
                 ['expires_at' => 'not a date'],

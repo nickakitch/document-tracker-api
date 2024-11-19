@@ -26,7 +26,7 @@ class StoreDocumentRequest extends FormRequest
         return [
             'name' => ['required', 'string', 'max:255'],
             'expires_at' => [
-                'required',
+                'nullable',
                 'date',
                 'after:' . now()->addWeek()->startOfDay()->toDateTimeString(),
                 'before:' . now()->addYears(5)->endOfDay()->toDateTimeString()

@@ -21,6 +21,7 @@ use Illuminate\Support\Carbon;
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  * @property-read User $owner
+ * @property Carbon|null $archived_at
  *
  * @method static Builder|Document newModelQuery()
  * @method static Builder|Document newQuery()
