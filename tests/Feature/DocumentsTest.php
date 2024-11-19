@@ -87,9 +87,22 @@ class DocumentsTest extends TestCase
         Storage::disk('local')->assertExists('documents/' . $file->hashName());
     }
 
-    public function test_given_a_user_is_not_authenticated_when_they_request_to_store_a_document_then_a_forbidden_response_is_returned(): void
+    public function test_given_a_user_is_not_authenticated_when_they_request_to_store_a_document_then_an_unauthorised_response_is_returned(): void
     {
-        $this->markTestIncomplete();
+        $file = UploadedFile::fake()->create('document.pdf', 100, 'application/pdf');
+        $expiry = now()->addWeek();
+
+        $this->assertGuest();
+
+        $this
+            ->postJson(
+                route('api.documents.store'),
+                [
+                    'name' => 'Contract',
+                    'file' => $file,
+                    'expires_at' => $expiry,
+                ]
+            )->assertUnauthorized();
     }
 
     public function test_validation(): void
