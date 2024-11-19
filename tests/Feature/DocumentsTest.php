@@ -5,6 +5,8 @@ namespace Tests\Feature;
 use App\Models\Document;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
 class DocumentsTest extends TestCase
@@ -57,17 +59,42 @@ class DocumentsTest extends TestCase
     //            ->assertForbidden();
     //    }
 
-    public function testItCanStoreADocument()
+    public function test_when_a_request_is_made_to_store_a_document_then_the_file_is_saved_in_the_database(): void
     {
-        $user = User::factory()
-            ->create();
+        $uploadingUser = User::factory()->create();
 
-        $this->actingAs($user);
+        $file = UploadedFile::fake()->create('document.pdf', 100, 'application/pdf');
+        $expiry = now()->addWeek();
 
-        $this->postJson('/api/documents', [
+        $this
+            ->actingAs($uploadingUser)
+            ->postJson(
+                route('api.documents.store'),
+                [
+                    'name' => 'Contract',
+                    'file' => $file,
+                    'expires_at' => $expiry,
+                ]
+            )->assertCreated();
+
+        $this->assertDatabaseHas((new Document())->getTable(), [
             'name' => 'Contract',
-            'expires_at' => now()->addWeek(),
-        ])->assertSuccessful();
+            'path' => 'documents/' . $file->hashName(),
+            'owner_id' => $uploadingUser->id,
+            'expires_at' => $expiry,
+        ], (new Document())->getConnectionName());
+
+        Storage::disk('local')->assertExists('documents/' . $file->hashName());
+    }
+
+    public function test_given_a_user_is_not_authenticated_when_they_request_to_store_a_document_then_a_forbidden_response_is_returned(): void
+    {
+        $this->markTestIncomplete();
+    }
+
+    public function test_validation(): void
+    {
+        $this->markTestIncomplete();
     }
 
     //    public function testItCanNotStoreADocumentWithExpiryInThePast()
