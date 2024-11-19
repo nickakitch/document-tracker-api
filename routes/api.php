@@ -16,6 +16,5 @@ use Illuminate\Support\Facades\Route;
 
 Route::middleware('auth:sanctum')->name('api.')->group(function () {
     Route::resource('documents', DocumentController::class)
-        ->only(['index', 'show', 'store']);
-    // Route::post('documents/{document}/archive');
+        ->only(['index', 'show', 'store', 'update']);
 });

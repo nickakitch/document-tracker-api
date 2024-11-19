@@ -116,7 +116,7 @@ class DocumentsTest extends TestCase
             )->assertUnauthorized();
     }
 
-    public static function validationProvider(): array
+    public static function storeValidationProvider(): array
     {
         return [
             'name is required' => [
@@ -163,9 +163,9 @@ class DocumentsTest extends TestCase
     }
 
     /**
-     * @dataProvider validationProvider
+     * @dataProvider storeValidationProvider
      */
-    public function test_validation(array $requestData, array $expectedErrors): void
+    public function test_store_validation(array $requestData, array $expectedErrors): void
     {
         $uploadingUser = User::factory()->create();
 
@@ -182,5 +182,128 @@ class DocumentsTest extends TestCase
         ], (new Document())->getConnectionName());
 
         Storage::disk('local')->assertMissing('documents/' . $file->hashName());
+    }
+
+    public function test_when_a_request_is_made_to_archive_a_document_then_the_document_is_archived(): void
+    {
+        $user = User::factory()->create();
+
+        $document = Document::factory()->for($user, 'owner')->create();
+
+        $this
+            ->actingAs($user)
+            ->putJson(
+                route('api.documents.update', ['document' => $document->id]),
+                ['archived_at' => now()->timestamp]
+            )
+            ->assertSuccessful();
+
+        $this
+            ->assertDatabaseHas(
+                (new Document())->getTable(),
+                [
+                    'id' => $document->id,
+                    'archived_at' => now()->toDateTimeString(),
+                ],
+                (new Document())->getConnectionName()
+            );
+    }
+
+    public function test_given_a_user_doesnt_own_a_document_when_a_request_is_made_to_archive_a_document_then_a_forbidden_response_is_returned(): void
+    {
+        $user = User::factory()->create();
+
+        $document = Document::factory()->create();
+
+        $this
+            ->actingAs($user)
+            ->putJson(
+                route('api.documents.update', ['document' => $document->id]),
+                ['archived_at' => now()->subWeek()->timestamp]
+            )
+            ->assertForbidden();
+
+        $this
+            ->assertDatabaseHas(
+                (new Document())->getTable(),
+                [
+                    'id' => $document->id,
+                    'archived_at' => null,
+                ],
+                (new Document())->getConnectionName()
+            );
+    }
+
+    public function test_given_a_user_is_not_authenticated_when_a_request_is_made_to_archive_a_document_then_an_unauthorised_response_is_returned(): void
+    {
+        $document = Document::factory()->create();
+
+        $this->assertGuest();
+
+        $this
+            ->putJson(
+                route('api.documents.update', ['document' => $document->id]),
+                ['archived_at' => now()->subWeek()->timestamp]
+            )
+            ->assertUnauthorized();
+
+        $this
+            ->assertDatabaseHas(
+                (new Document())->getTable(),
+                [
+                    'id' => $document->id,
+                    'archived_at' => null,
+                ],
+                (new Document())->getConnectionName()
+            );
+    }
+
+    public static function updateValidationProvider(): array
+    {
+        return [
+            'archived_at must be an integer' => [
+                ['archived_at' => 'not an integer'],
+                ['archived_at' => ['The archived at field must be an integer.']],
+            ],
+            'archived_at must be at least 0' => [
+                ['archived_at' => -1],
+                ['archived_at' => ['The archived at field must be at least 0.']],
+            ],
+            'archived_at must be at most the current timestamp' => [
+                ['archived_at' => now()->addDay()->timestamp],
+                ['archived_at' => ['The archived at field must not be greater than ' . now()->timestamp . '.']],
+            ],
+        ];
+    }
+
+    /**
+     * @dataProvider updateValidationProvider
+     */
+    public function test_update_validation(array $requestData, array $expectedErrors): void
+    {
+        $user = User::factory()->create();
+
+        $document = Document::factory()
+            ->for($user, 'owner')
+            ->create(['archived_at' => now()->subWeek()]);
+
+        $this
+            ->actingAs($user)
+            ->putJson(
+                route('api.documents.update', ['document' => $document->id]),
+                $requestData
+            )
+            ->assertStatus(422)
+            ->assertJsonValidationErrors($expectedErrors);
+
+        $this
+            ->assertDatabaseHas(
+                (new Document())->getTable(),
+                [
+                    'id' => $document->id,
+                    'archived_at' => now()->subWeek()->toDateTimeString(),
+                ],
+                (new Document())->getConnectionName()
+            );
     }
 }
