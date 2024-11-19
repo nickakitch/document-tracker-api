@@ -5,6 +5,8 @@ namespace Tests\Commands;
 use App\Models\Document;
 use App\Models\User;
 use App\Notifications\DocumentsExpiringNotification;
+use Illuminate\Console\Scheduling\Event;
+use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Notification;
 use Tests\TestCase;
@@ -71,5 +73,21 @@ class SendDocumentsExpiringNotificationTest extends TestCase
             function (DocumentsExpiringNotification $notification, $channels) use ($documentArchived) {
                 return $notification->documents->contains($documentArchived);
             });
+    }
+
+    public function test_the_command_is_in_the_task_scheduler_for_every_morning_at_9am(): void
+    {
+        /** @var Schedule $schedule */
+        $schedule = app()->make(Schedule::class);
+
+        $events = collect($schedule->events())->filter(function (Event $event) {
+            return stripos($event->command, 'app:send-documents-expiring-notification');
+        });
+
+        if ($events->count() == 0) {
+            $this->fail('No events found');
+        }
+
+        $events->each(fn (Event $event) => $this->assertEquals('0 9 * * *', $event->expression));
     }
 }

@@ -12,7 +12,13 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule): void
     {
-        // $schedule->command('inspire')->hourly();
+        // an improvement I'd look at making would be to have the time of the notification configurable,
+        // and based on the organisation timezone
+
+        $schedule
+            ->command('app:send-documents-expiring-notification')
+            ->daily()
+            ->at('09:00');
     }
 
     /**
