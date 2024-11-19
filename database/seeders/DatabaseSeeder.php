@@ -24,10 +24,5 @@ class DatabaseSeeder extends Seeder
                 'email' => 'user@astalty.com.au',
                 'password' => Hash::make('password'),
             ]);
-
-        // \App\Models\User::factory()->create([
-        //     'name' => 'Test User',
-        //     'email' => 'test@example.com',
-        // ]);
     }
 }
