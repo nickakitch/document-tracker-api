@@ -4,6 +4,7 @@ namespace App\Http\Requests;
 
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rules\File;
 
 class StoreDocumentRequest extends FormRequest
 {
@@ -30,7 +31,7 @@ class StoreDocumentRequest extends FormRequest
                 'after:' . now()->addWeek()->startOfDay()->toDateTimeString(),
                 'before:' . now()->addYears(5)->endOfDay()->toDateTimeString()
             ],
-            'file' => ['required', 'file', 'mimes:pdf', 'max:10240'],
+            'file' => ['required', File::types(['pdf'])->max(10 * 1024)],
         ];
     }
 }
