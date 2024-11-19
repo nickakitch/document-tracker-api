@@ -22,6 +22,8 @@ class DocumentController extends Controller
 
     public function store(StoreDocumentRequest $request): DocumentResource
     {
+        // another improvement would be multi-upload support (probably handled on the frontend to send multiple requests to this endpoint)
+
         $input = $request->validated();
 
         $document = $request
@@ -38,6 +40,9 @@ class DocumentController extends Controller
 
     public function show(Document $document, ShowDocumentRequest $request): DocumentResource
     {
+        // an improvement I'd look at making would be to have a uuid for each document,
+        // so that they can't easily be identified as existing by incrementing the id
+
         return DocumentResource::make($document);
     }
 

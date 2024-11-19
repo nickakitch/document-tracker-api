@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
-class DocumentsExpiringNotification extends Notification
+class DocumentsExpiringNotification extends Notification implements ShouldQueue
 {
     use Queueable;
 
