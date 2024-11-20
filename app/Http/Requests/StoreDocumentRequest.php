@@ -27,9 +27,9 @@ class StoreDocumentRequest extends FormRequest
             'name' => ['required', 'string', 'max:255'],
             'expires_at' => [
                 'nullable',
-                'date',
-                'after:' . now()->addWeek()->startOfDay()->toDateTimeString(),
-                'before:' . now()->addYears(5)->endOfDay()->toDateTimeString()
+                'int',
+                'min:' . now()->addWeek()->startOfDay()->timestamp,
+                'max:' . now()->addYears(5)->endOfDay()->timestamp
             ],
             'file' => ['required', File::types(['pdf'])->max(10 * 1024)],
         ];

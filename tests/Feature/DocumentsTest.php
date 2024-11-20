@@ -100,7 +100,7 @@ class DocumentsTest extends TestCase
             ->getJson(route('api.documents.show', ['document' => $document->id]))
             ->assertSuccessful()
             ->assertHeader('Content-Type', 'application/pdf')
-            ->assertHeader('Content-Disposition', 'attachment; filename="' . $document->name . '.pdf"');
+            ->assertHeader('Content-Disposition', 'attachment; filename=test-document.pdf');
     }
 
     public function test_given_a_user_does_not_own_a_document_when_a_request_is_made_to_view_a_single_document_then_a_forbidden_response_is_returned()
@@ -190,17 +190,17 @@ class DocumentsTest extends TestCase
                 ['file' => UploadedFile::fake()->create('document.pdf', 10241)],
                 ['file' => ['The file field must not be greater than 10240 kilobytes.']],
             ],
-            'expires_at must be a date' => [
-                ['expires_at' => 'not a date'],
-                ['expires_at' => ['The expires at field must be a valid date.']],
+            'expires_at must be an int' => [
+                ['expires_at' => 'not an int'],
+                ['expires_at' => ['The expires at field must be an integer.']],
             ],
             'expires_at must be after a week from now' => [
-                ['expires_at' => now()->subWeek()],
-                ['expires_at' => ['The expires at field must be a date after ' . now()->addWeek()->startOfDay()->toDateTimeString() . '.']],
+                ['expires_at' => now()->subWeek()->timestamp],
+                ['expires_at' => ['The expires at field must be at least ' . now()->addWeek()->startOfDay()->timestamp . '.']],
             ],
             'expires_at must be before 5 years from now' => [
-                ['expires_at' => now()->addYears(5)->addDay()],
-                ['expires_at' => ['The expires at field must be a date before ' . now()->addYears(5)->endOfDay()->toDateTimeString() . '.']],
+                ['expires_at' => now()->addYears(5)->addDay()->timestamp],
+                ['expires_at' => ['The expires at field must not be greater than ' . now()->addYears(5)->endOfDay()->timestamp . '.']],
             ],
         ];
     }
