@@ -87,22 +87,20 @@ class DocumentsTest extends TestCase
     {
         $user = User::factory()->create();
 
-        $document = Document::factory()->for($user, 'owner')->create();
+        $document = Document::factory()->for($user, 'owner')->create([
+            'path' => 'documents/test-document.pdf',
+            'name' => 'Test Document',
+        ]);
+
+        Storage::fake('local');
+        Storage::disk('local')->put('documents/test-document.pdf', 'test document content');
 
         $this
             ->actingAs($user)
             ->getJson(route('api.documents.show', ['document' => $document->id]))
             ->assertSuccessful()
-            ->assertJsonStructure([
-                'data' => [
-                    'id',
-                    'name',
-                    'path',
-                    'ownerId',
-                    'createdAt',
-                    'updatedAt',
-                ],
-            ]);
+            ->assertHeader('Content-Type', 'application/pdf')
+            ->assertHeader('Content-Disposition', 'attachment; filename="' . $document->name . '.pdf"');
     }
 
     public function test_given_a_user_does_not_own_a_document_when_a_request_is_made_to_view_a_single_document_then_a_forbidden_response_is_returned()

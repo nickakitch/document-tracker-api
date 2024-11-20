@@ -10,6 +10,8 @@ use App\Http\Resources\DocumentResource;
 use App\Models\Document;
 use Carbon\Carbon;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
+use Illuminate\Support\Facades\Storage;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class DocumentController extends Controller
 {
@@ -44,12 +46,12 @@ class DocumentController extends Controller
         return DocumentResource::make($document);
     }
 
-    public function show(Document $document, ShowDocumentRequest $request): DocumentResource
+    public function show(Document $document, ShowDocumentRequest $request): StreamedResponse
     {
         // an improvement I'd look at making would be to have a uuid for each document,
         // so that they can't easily be identified as existing by incrementing the id
 
-        return DocumentResource::make($document);
+        return Storage::disk('local')->download($document->path);
     }
 
     public function update(UpdateDocumentRequest $request, Document $document): DocumentResource
