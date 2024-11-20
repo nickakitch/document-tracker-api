@@ -2,21 +2,27 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\ListDocumentsRequest;
 use App\Http\Requests\ShowDocumentRequest;
 use App\Http\Requests\StoreDocumentRequest;
 use App\Http\Requests\UpdateDocumentRequest;
 use App\Http\Resources\DocumentResource;
 use App\Models\Document;
 use Carbon\Carbon;
-use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 
 class DocumentController extends Controller
 {
-    public function index(Request $request): AnonymousResourceCollection
+    public function index(ListDocumentsRequest $request): AnonymousResourceCollection
     {
+        $documents = $request->user()->documents();
+
+        if ($request->has('expires_before')) {
+            $documents->where('expires_at', '<', Carbon::createFromTimestamp($request->input('expires_before')));
+        }
+
         return DocumentResource::collection(
-            resource: $request->user()->documents
+            resource: $documents->get(),
         );
     }
 

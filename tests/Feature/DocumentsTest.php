@@ -39,6 +39,26 @@ class DocumentsTest extends TestCase
             ->assertSuccessful();
     }
 
+    public function test_when_a_request_includes_a_filter_to_filter_by_expiry_date_then_only_documents_that_expire_before_the_date_are_returned(): void
+    {
+        $user = User::factory()
+            ->has(Document::factory([
+                'expires_at' => now()->addDay(),
+            ])->count(10))
+            ->create();
+
+        Document::factory()->count(10)->create([
+            'owner_id' => $user->id,
+            'expires_at' => now()->addMonth(),
+        ]);
+
+        $this
+            ->actingAs($user)
+            ->getJson(route('api.documents.index', ['expires_before' => now()->addWeek()->timestamp]))
+            ->assertJsonCount(10, 'data')
+            ->assertSuccessful();
+    }
+
     public function test_a_user_can_only_view_a_list_of_their_own_documents(): void
     {
         $user = User::factory()
