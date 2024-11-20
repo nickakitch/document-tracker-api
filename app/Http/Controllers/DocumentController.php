@@ -17,7 +17,7 @@ class DocumentController extends Controller
 {
     public function index(ListDocumentsRequest $request): AnonymousResourceCollection
     {
-        $documents = $request->user()->documents();
+        $documents = $request->user()->documents()->whereNull('archived_at');
 
         if ($request->has('expires_before')) {
             $documents->where('expires_at', '<', Carbon::createFromTimestamp($request->input('expires_before')));
