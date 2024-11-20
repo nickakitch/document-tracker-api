@@ -13,7 +13,7 @@ class DocumentsTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_when_a_request_is_made_to_view_a_list_of_documents_then_the_documents_are_returned()
+    public function test_when_a_request_is_made_to_view_a_list_of_documents_then_the_documents_are_returned(): void
     {
         $user = User::factory()
             ->has(Document::factory()->count(10))
@@ -38,7 +38,31 @@ class DocumentsTest extends TestCase
             ->assertSuccessful();
     }
 
-    public function test_when_a_request_is_made_to_view_a_single_document_then_the_document_is_returned()
+    public function test_a_user_can_only_view_a_list_of_their_own_documents(): void
+    {
+        $user = User::factory()
+            ->has(Document::factory())
+            ->create();
+
+        $anotherUser = User::factory()
+            ->has(Document::factory())
+            ->create();
+
+        $this
+            ->actingAs($user)
+            ->getJson(route('api.documents.index'))
+            ->assertJsonCount(1, 'data')
+            ->assertJsonMissing([
+                'data' => [
+                    '*' => [
+                        'owner_id' => $anotherUser->id,
+                    ],
+                ],
+            ])
+            ->assertSuccessful();
+    }
+
+    public function test_when_a_request_is_made_to_view_a_single_document_then_the_document_is_returned(): void
     {
         $user = User::factory()->create();
 

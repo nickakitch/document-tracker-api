@@ -16,7 +16,7 @@ class DocumentController extends Controller
     public function index(Request $request): AnonymousResourceCollection
     {
         return DocumentResource::collection(
-            resource: Document::all()
+            resource: $request->user()->documents
         );
     }
 
