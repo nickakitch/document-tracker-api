@@ -18,13 +18,13 @@ class DocumentResource extends JsonResource
 
         return [
             'id' => $document->id,
-            'owner_id' => $document->owner_id,
+            'ownerId' => $document->owner_id,
             'name' => $document->name,
             'path' => $document->path,
-            'expires_at' => $document->expires_at?->timestamp,
-            'archived_at' => $document->archived_at?->timestamp,
-            'created_at' => $document->created_at?->timestamp,
-            'updated_at' => $document->updated_at?->timestamp,
+            'expiresAt' => $document->expires_at?->timestamp,
+            'archivedAt' => $document->archived_at?->timestamp,
+            'createdAt' => $document->created_at?->timestamp,
+            'updatedAt' => $document->updated_at?->timestamp,
         ];
     }
 }

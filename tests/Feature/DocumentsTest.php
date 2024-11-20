@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Models\Document;
 use App\Models\User;
+use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
@@ -29,9 +30,9 @@ class DocumentsTest extends TestCase
                         'id',
                         'name',
                         'path',
-                        'owner_id',
-                        'created_at',
-                        'updated_at',
+                        'ownerId',
+                        'createdAt',
+                        'updatedAt',
                     ],
                 ],
             ])
@@ -55,7 +56,7 @@ class DocumentsTest extends TestCase
             ->assertJsonMissing([
                 'data' => [
                     '*' => [
-                        'owner_id' => $anotherUser->id,
+                        'ownerId' => $anotherUser->id,
                     ],
                 ],
             ])
@@ -77,9 +78,9 @@ class DocumentsTest extends TestCase
                     'id',
                     'name',
                     'path',
-                    'owner_id',
-                    'created_at',
-                    'updated_at',
+                    'ownerId',
+                    'createdAt',
+                    'updatedAt',
                 ],
             ]);
     }
@@ -294,8 +295,8 @@ class DocumentsTest extends TestCase
                 ['archived_at' => ['The archived at field must be at least 0.']],
             ],
             'archived_at must be at most the current timestamp' => [
-                ['archived_at' => now()->addDay()->timestamp],
-                ['archived_at' => ['The archived at field must not be greater than ' . now()->timestamp . '.']],
+                ['archived_at' => 1732063223],
+                ['archived_at' => ['The archived at field must not be greater than 1609459200.']],
             ],
         ];
     }
@@ -305,6 +306,8 @@ class DocumentsTest extends TestCase
      */
     public function test_update_validation(array $requestData, array $expectedErrors): void
     {
+        $this->travelTo(Carbon::parse('2021-01-01 00:00:00'));
+
         $user = User::factory()->create();
 
         $document = Document::factory()

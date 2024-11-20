@@ -26,7 +26,7 @@ class UpdateDocumentRequest extends FormRequest
         // another improvement I'd make is having a parent request for store and for update (StoreOrUpdateDocumentRequest)
         // that would have the common rules for both store and update requests
 
-        // I'd also add in custom messages so that this is a bit more user-friendly, instead of something lie "The archived at must be at most 1732056981."
+        // I'd also add in custom messages so that this is a bit more user-friendly, instead of something lie "The archived at must be at most 1609459200."
         return [
             'archived_at' => ['nullable', 'int', 'min:0', 'max:' . now()->timestamp],
         ];
